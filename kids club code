@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Kids Club Booking</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9fbff; }
+    h2 { color:#4a6fa5; }
+    .item { margin: 5px 0; }
+    button { padding:8px 12px; margin-top:10px; }
+  </style>
+</head>
+
+<body>
+
+<form id="orderForm">
+
+  <h2>Child's First Name:</h2>
+  <input type="text" name="firstname" required>
+
+  <h2>Child's Last Name:</h2>
+  <input type="text" name="lastname" required>
+
+  <h2>Number of Kids (1–50):</h2>
+  <input type="number" name="people" min="1" max="50" required>
+
+  <h2>Session Time:</h2>
+  <label><input type="radio" name="time" value="Morning (9–12)" required> Morning (9–12)</label><br>
+  <label><input type="radio" name="time" value="Afternoon (12–3)"> Afternoon (12–3)</label><br>
+  <label><input type="radio" name="time" value="After School (3–6)"> After School (3–6)</label>
+
+  <h2>Snacks & Drinks</h2>
+  <div class="item">Juice (£1.00) <input type="number" min="0" value="0" data-name="Juice" data-price="1"></div>
+  <div class="item">Milk (£1.20) <input type="number" min="0" value="0" data-name="Milk" data-price="1.2"></div>
+  <div class="item">Cookies (£1.50) <input type="number" min="0" value="0" data-name="Cookies" data-price="1.5"></div>
+
+  <h2>Fun Activities</h2>
+  <div class="item">Arts & Crafts (£5.00) <input type="number" min="0" value="0" data-name="Arts & Crafts" data-price="5"></div>
+  <div class="item">Games Room (£4.00) <input type="number" min="0" value="0" data-name="Games Room" data-price="4"></div>
+
+  <h3>Special Activity (£6.00):</h3>
+  <select name="activity" data-price="6">
+    <option value="none">None</option>
+    <option value="Magic Show">Magic Show</option>
+    <option value="Face Painting">Face Painting</option>
+    <option value="Mini Disco">Mini Disco</option>
+  </select>
+
+  <h3>Discount (£):</h3>
+  <input type="number" id="discount" value="0" min="0">
+
+  <h3>Extra charges (£):</h3>
+  <input type="number" id="extra" value="0" min="0">
+
+  <h2>Total: £<span id="total">0.00</span></h2>
+
+  <button type="submit">Submit & Print</button>
+  <button type="reset">Reset</button>
+
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("orderForm");
+  const totalDisplay = document.getElementById("total");
+
+  function calculateTotal() {
+    let total = 0;
+
+    document.querySelectorAll("input[data-price]").forEach(input => {
+      const qty = Number(input.value);
+      const price = Number(input.dataset.price);
+      total += qty * price;
+    });
+
+    const activity = form.activity;
+    if (activity.value !== "none") {
+      total += Number(activity.dataset.price);
+    }
+
+    const discount = Number(document.getElementById("discount").value);
+    const extra = Number(document.getElementById("extra").value);
+
+    total = total - discount + extra;
+    totalDisplay.textContent = total.toFixed(2);
+  }
+
+  document.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", calculateTotal);
+  });
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const first = form.firstname.value;
+    const last = form.lastname.value;
+    const people = form.people.value;
+    const time = form.time.value;
+
+    let itemsList = "";
+
+    document.querySelectorAll("input[data-price]").forEach(input => {
+      const qty = Number(input.value);
+      if (qty > 0) {
+        itemsList += `${input.dataset.name} x${qty}<br>`;
+      }
+    });
+
+    const activity = form.activity.value;
+    if (activity !== "none") {
+      itemsList += `Special Activity: ${activity}<br>`;
+    }
+
+    const total = totalDisplay.textContent;
+
+    const w = window.open("", "_blank");
+
+    w.document.write(`
+      <html>
+      <body>
+        <h1>Kids Club Booking Summary</h1>
+        <p><strong>Name:</strong> ${first} ${last}</p>
+        <p><strong>Number of Kids:</strong> ${people}</p>
+        <p><strong>Session:</strong> ${time}</p>
+        <p><strong>Items Chosen:</strong><br>${itemsList}</p>
+        <h2>Total Cost: £${total}</h2>
+
+        <script>
+          window.onload = () => window.print();
+        <\/script>
+      </body>
+      </html>
+    `);
+
+    w.document.close();
+  });
+
+  calculateTotal();
+});
+</script>
+
+</body>
+</html>
